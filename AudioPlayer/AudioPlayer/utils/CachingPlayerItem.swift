@@ -117,7 +117,7 @@ open class CachingPlayerItem: AVPlayerItem {
       // get all fullfilled requests
       let requestsFulfilled = Set<AVAssetResourceLoadingRequest>(pendingRequests.compactMap {
         self.fillInContentInformationRequest($0.contentInformationRequest)
-        if self.haveEnoughDataToFulfillRequest($0.dataRequest!) {
+        if let dataRequest = $0.dataRequest, self.haveEnoughDataToFulfillRequest(dataRequest) {
           $0.finishLoading()
           return $0
         }
@@ -132,9 +132,9 @@ open class CachingPlayerItem: AVPlayerItem {
     func fillInContentInformationRequest(_ contentInformationRequest: AVAssetResourceLoadingContentInformationRequest?) {
       
       // if we play from Data we make no url requests, therefore we have no responses, so we need to fill in contentInformationRequest manually
-      if playingFromData {
+      if playingFromData, let count: Int = mediaData?.count {
         contentInformationRequest?.contentType = self.mimeType
-        contentInformationRequest?.contentLength = Int64(mediaData!.count)
+        contentInformationRequest?.contentLength = Int64(count)
         contentInformationRequest?.isByteRangeAccessSupported = true
         return
       }
