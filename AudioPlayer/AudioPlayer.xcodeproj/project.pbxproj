@@ -101,6 +101,9 @@
 		46E49EF41C94B27000490721 /* AudioItemQueue_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E49EF31C94B27000490721 /* AudioItemQueue_Tests.swift */; };
 		46E4B57E1DC4311A0027C6C5 /* AudioPlayer+SeekEvent_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E4B57D1DC4311A0027C6C5 /* AudioPlayer+SeekEvent_Tests.swift */; };
 		46F956091C97385400923EE1 /* AudioItemEventProducer_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F956081C97385400923EE1 /* AudioItemEventProducer_Tests.swift */; };
+		48D309582292E3B30068023A /* CachingPlayerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D309572292E3B30068023A /* CachingPlayerItem.swift */; };
+		48D309592292E3B30068023A /* CachingPlayerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D309572292E3B30068023A /* CachingPlayerItem.swift */; };
+		48D3095A2292E3B30068023A /* CachingPlayerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D309572292E3B30068023A /* CachingPlayerItem.swift */; };
 		653E188C1C3541B8003C0CAB /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462679671AED5DDC003771C9 /* AudioPlayer.swift */; };
 		653E188D1C3541BB003C0CAB /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466930791BAD30AB00C1E97C /* Reachability.swift */; };
 		BB5E356D1EC3738F001BF508 /* AudioPlayerBufferingStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5E356C1EC3738F001BF508 /* AudioPlayerBufferingStrategy.swift */; };
@@ -167,6 +170,7 @@
 		46E49EF31C94B27000490721 /* AudioItemQueue_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioItemQueue_Tests.swift; sourceTree = "<group>"; };
 		46E4B57D1DC4311A0027C6C5 /* AudioPlayer+SeekEvent_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AudioPlayer+SeekEvent_Tests.swift"; sourceTree = "<group>"; };
 		46F956081C97385400923EE1 /* AudioItemEventProducer_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioItemEventProducer_Tests.swift; sourceTree = "<group>"; };
+		48D309572292E3B30068023A /* CachingPlayerItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachingPlayerItem.swift; sourceTree = "<group>"; };
 		653E18801C353DD0003C0CAB /* AudioPlayer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AudioPlayer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		653E18841C353DD0003C0CAB /* Info-tvOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-tvOS.plist"; sourceTree = "<group>"; };
 		BB5E356C1EC3738F001BF508 /* AudioPlayerBufferingStrategy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayerBufferingStrategy.swift; sourceTree = "<group>"; };
@@ -318,6 +322,7 @@
 				467D61261CB1145000D50807 /* URL+Offline.swift */,
 				46D3A30C1C933A7F00635FE4 /* CMTime+TimeIntervalValue.swift */,
 				4631A0301CA7D6F300202AA3 /* MPNowPlayingInfoCenter+AudioItem.swift */,
+				48D309572292E3B30068023A /* CachingPlayerItem.swift */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -585,6 +590,7 @@
 				46D3A30D1C933A7F00635FE4 /* CMTime+TimeIntervalValue.swift in Sources */,
 				46BF0BCE1DC2DED900560FD1 /* AudioPlayer+SeekEvent.swift in Sources */,
 				46D3A31B1C9340D000635FE4 /* AudioItemQueue.swift in Sources */,
+				48D309582292E3B30068023A /* CachingPlayerItem.swift in Sources */,
 				467D611B1CB1113500D50807 /* AudioPlayer+NetworkEvent.swift in Sources */,
 				4631A0311CA7D6F300202AA3 /* MPNowPlayingInfoCenter+AudioItem.swift in Sources */,
 				46DE85121CAB0A3200F00287 /* AudioPlayer+CurrentItem.swift in Sources */,
@@ -636,6 +642,7 @@
 				46D3A2EB1C8F4A7B00635FE4 /* NetworkEventProducer.swift in Sources */,
 				46D3A3151C93405400635FE4 /* QualityAdjustmentEventProducer.swift in Sources */,
 				460FA1E71CC1814500156DFC /* AudioPlayer+RetryEvent.swift in Sources */,
+				48D3095A2292E3B30068023A /* CachingPlayerItem.swift in Sources */,
 				46DE85141CAB0A3200F00287 /* AudioPlayer+CurrentItem.swift in Sources */,
 				46BF0BCC1DC2DCC300560FD1 /* SeekEventProducer.swift in Sources */,
 				460FA1E11CBA946F00156DFC /* RetryEventProducer.swift in Sources */,
@@ -675,6 +682,7 @@
 				46D3A3031C90A93900635FE4 /* AudioPlayerDelegate.swift in Sources */,
 				46BF0BCF1DC2DED900560FD1 /* AudioPlayer+SeekEvent.swift in Sources */,
 				46D3A31C1C9340D000635FE4 /* AudioItemQueue.swift in Sources */,
+				48D309592292E3B30068023A /* CachingPlayerItem.swift in Sources */,
 				467D611C1CB1113500D50807 /* AudioPlayer+NetworkEvent.swift in Sources */,
 				4631A0321CA7D6F300202AA3 /* MPNowPlayingInfoCenter+AudioItem.swift in Sources */,
 				46DE85131CAB0A3200F00287 /* AudioPlayer+CurrentItem.swift in Sources */,
