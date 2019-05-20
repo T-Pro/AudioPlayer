@@ -63,7 +63,12 @@ open class AudioItem: NSObject {
     /// Returns the available qualities.
     public let soundURLs: [AudioQuality: URL]
     
+    /// Used to handle caching policy.
     public weak var cachingPlayerItemDelegate: CachingPlayerItemDelegate?
+    
+    deinit {
+        cachingPlayerItemDelegate = nil
+    }
 
     // MARK: Initialization
 
