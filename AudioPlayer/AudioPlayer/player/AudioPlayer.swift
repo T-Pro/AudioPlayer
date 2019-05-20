@@ -106,7 +106,8 @@ public class AudioPlayer: NSObject {
                 pausedForInterruption = false
                 
                 //Create new AVPlayerItem
-                let playerItem = AVPlayerItem(url: info.url)
+                let playerItem = CachingPlayerItem(url: info.url)
+                playerItem.delegate = currentItem.cachingPlayerItemDelegate
                 
                 if #available(iOS 10.0, tvOS 10.0, OSX 10.12, *) {
                     playerItem.preferredForwardBufferDuration = self.preferredForwardBufferDuration

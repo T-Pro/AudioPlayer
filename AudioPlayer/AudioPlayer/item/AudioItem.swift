@@ -62,6 +62,8 @@ public struct AudioItemURL {
 open class AudioItem: NSObject {
     /// Returns the available qualities.
     public let soundURLs: [AudioQuality: URL]
+    
+    public weak var cachingPlayerItemDelegate: CachingPlayerItemDelegate?
 
     // MARK: Initialization
 
