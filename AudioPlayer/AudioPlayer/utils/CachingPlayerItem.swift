@@ -2,13 +2,11 @@ import Foundation
 import AVFoundation
 
 fileprivate extension URL {
-  
   func withScheme(_ scheme: String) -> URL? {
-    var components = URLComponents(url: self, resolvingAgainstBaseURL: false)
+    var components: URLComponents = URLComponents(url: self, resolvingAgainstBaseURL: false)
     components?.scheme = scheme
     return components?.url
   }
-  
 }
 
 @objc public protocol CachingPlayerItemDelegate {
@@ -51,11 +49,7 @@ open class CachingPlayerItem: AVPlayerItem {
     
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
       
-      if playingFromData {
-        
-        // Nothing to load.
-        
-      } else if session == nil {
+      if !playingFromData && session == nil {
         
         // If we're playing from a url, we need to download the file.
         // We start loading the file on first request only.
@@ -94,7 +88,11 @@ open class CachingPlayerItem: AVPlayerItem {
         outOf: Int(dataTask.countOfBytesExpectedToReceive))
     }
     
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+    func urlSession(
+      _ session: URLSession,
+      dataTask: URLSessionDataTask,
+      didReceive response: URLResponse,
+      completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
       completionHandler(Foundation.URLSession.ResponseDisposition.allow)
       mediaData = Data()
       self.response = response
@@ -102,7 +100,7 @@ open class CachingPlayerItem: AVPlayerItem {
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-      if let errorUnwrapped = error {
+      if let errorUnwrapped: Error = error {
         owner?.delegate?.playerItem?(owner!, downloadingFailedWith: errorUnwrapped)
         return
       }
@@ -114,18 +112,26 @@ open class CachingPlayerItem: AVPlayerItem {
     
     func processPendingRequests() {
       
+      if pendingRequests.isEmpty {
+        return
+      }
+      
       // get all fullfilled requests
-      let requestsFulfilled = Set<AVAssetResourceLoadingRequest>(pendingRequests.compactMap {
-        self.fillInContentInformationRequest($0.contentInformationRequest)
-        if let dataRequest = $0.dataRequest, self.haveEnoughDataToFulfillRequest(dataRequest) {
-          $0.finishLoading()
-          return $0
-        }
-        return nil
-      })
+      let requestsFulfilled = Set<AVAssetResourceLoadingRequest>(
+        pendingRequests.compactMap { (pendingRequest: AVAssetResourceLoadingRequest) in
+          self.fillInContentInformationRequest(pendingRequest.contentInformationRequest)
+          if let dataRequest: AVAssetResourceLoadingDataRequest = pendingRequest.dataRequest,
+            self.haveEnoughDataToFulfillRequest(dataRequest) {
+            pendingRequest.finishLoading()
+            return pendingRequest
+          }
+          return nil
+        })
       
       // remove fulfilled requests from pending requests
-      _ = requestsFulfilled.map { self.pendingRequests.remove($0) }
+      _ = requestsFulfilled.map { (loadingRequest: AVAssetResourceLoadingRequest) in
+        self.pendingRequests.remove(loadingRequest)
+      }
       
     }
     
@@ -152,9 +158,9 @@ open class CachingPlayerItem: AVPlayerItem {
     
     func haveEnoughDataToFulfillRequest(_ dataRequest: AVAssetResourceLoadingDataRequest) -> Bool {
       
-      let requestedOffset = Int(dataRequest.requestedOffset)
+      let requestedOffset: Int = Int(dataRequest.requestedOffset)
       let requestedLength: Int = dataRequest.requestedLength
-      let currentOffset = Int(dataRequest.currentOffset)
+      let currentOffset: Int = Int(dataRequest.currentOffset)
       
       guard let songDataUnwrapped: Data = mediaData,
         songDataUnwrapped.count > currentOffset else {
@@ -187,6 +193,7 @@ open class CachingPlayerItem: AVPlayerItem {
     NotificationCenter.default.removeObserver(self)
     removeObserver(self, forKeyPath: "status")
     resourceLoaderDelegate.session?.invalidateAndCancel()
+    delegate = nil
   }
   
   open func download() {
