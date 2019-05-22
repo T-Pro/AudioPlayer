@@ -79,7 +79,6 @@ class QualityAdjustmentEventProducer: NSObject, EventProducer {
         }
     }
 
-
     /// Stops producing events on deinitialization.
     deinit {
         stopProducingEvents()

@@ -216,7 +216,7 @@ class PlayerEventProducer: NSObject, EventProducer {
                     eventListener?.onEvent(
                         PlayerEvent.loadedMoreRange(earliest: range.start, latest: range.end), generetedBy: self)
                 }
-            
+
             case "currentItem.timedMetadata":
                 if let metadata = currentItem.timedMetadata {
                     eventListener?.onEvent(PlayerEvent.loadedMetadata(metadata: metadata), generetedBy: self)

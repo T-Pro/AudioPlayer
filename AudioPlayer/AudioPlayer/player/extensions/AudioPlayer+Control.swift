@@ -16,7 +16,7 @@ extension AudioPlayer {
     public func resume() {
         //Ensure pause flag is no longer set
         pausedForInterruption = false
-        
+
         player?.rate = rate
 
         //We don't wan't to change the state to Playing in case it's Buffering. That
@@ -41,13 +41,13 @@ extension AudioPlayer {
         //app is in foreground.
         backgroundHandler.beginBackgroundTask()
     }
-    
+
     /// Starts playing the current item immediately. Works on iOS/tvOS 10+ and macOS 10.12+
     func playImmediately() {
         if #available(iOS 10.0, tvOS 10.0, OSX 10.12, *) {
             self.state = .playing
             player?.playImmediately(atRate: rate)
-            
+
             retryEventProducer.stopProducingEvents()
             backgroundHandler.endBackgroundTask()
         }
@@ -111,8 +111,7 @@ extension AudioPlayer {
                      byAdaptingTimeToFitSeekableRanges: Bool = false,
                      toleranceBefore: CMTime = CMTime.positiveInfinity,
                      toleranceAfter: CMTime = CMTime.positiveInfinity,
-                     completionHandler: ((Bool) -> Void)? = nil)
-    {
+                     completionHandler: ((Bool) -> Void)? = nil) {
         guard let earliest = currentItemSeekableRange?.earliest,
             let latest = currentItemSeekableRange?.latest else {
                 //In case we don't have a valid `seekableRange`, although this *shouldn't* happen
@@ -202,12 +201,11 @@ extension AudioPlayer {
 }
 
 extension AudioPlayer {
-    
+
     fileprivate func seekSafely(to time: TimeInterval,
                                 toleranceBefore: CMTime = CMTime.positiveInfinity,
                                 toleranceAfter: CMTime = CMTime.positiveInfinity,
-                                completionHandler: ((Bool) -> Void)?)
-    {
+                                completionHandler: ((Bool) -> Void)?) {
         guard let completionHandler = completionHandler else {
             player?.seek(to: CMTime(timeInterval: time), toleranceBefore: toleranceBefore,
                          toleranceAfter: toleranceAfter)

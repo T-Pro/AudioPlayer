@@ -122,7 +122,7 @@ class Reachability: NSObject {
     }
 
     func isReachableViaWiFi() -> Bool {
-        return isReachableWithTest() { flags -> Bool in
+        return isReachableWithTest { flags -> Bool in
             // Check we're reachable
             if self.isReachable(flags: flags) {
                 if self.isRunningOnDevice {
