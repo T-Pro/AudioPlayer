@@ -39,7 +39,6 @@ class SeekEventProducer: NSObject, EventProducer {
     /// A boolean value indicating whether the producer should generate backward or forward events.
     var isBackward = false
 
-
     /// Stops producing events on deinitialization.
     deinit {
         stopProducingEvents()

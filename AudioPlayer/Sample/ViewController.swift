@@ -43,7 +43,7 @@ class ViewController: UIViewController, AudioPlayerDelegate {
     guard let pathString: String = bundle.path(forResource: name, ofType: format) else {
       fatalError()
     }
-    if (FileManager.default.fileExists(atPath: pathString)) {
+    if FileManager.default.fileExists(atPath: pathString) {
       return URL(fileURLWithPath: pathString)
     }
     fatalError()

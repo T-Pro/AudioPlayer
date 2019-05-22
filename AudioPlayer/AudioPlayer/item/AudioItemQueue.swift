@@ -15,7 +15,7 @@ private extension Array {
     ///
     /// - Returns: A shuffled array.
     func ap_shuffled() -> [Element] {
-        return sorted { element1, element2 in
+        return sorted { _, _ in
             arc4random() % 2 == 0
         }
     }
