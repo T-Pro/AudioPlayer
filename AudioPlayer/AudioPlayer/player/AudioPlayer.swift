@@ -106,9 +106,15 @@ public class AudioPlayer: NSObject {
                 pausedForInterruption = false
 
                 //Create new AVPlayerItem
-                let playerItem = CachingPlayerItem(url: info.url)
-                playerItem.delegate = currentItem.cachingPlayerItemDelegate
-
+                let playerItem: AVPlayerItem
+                if currentItem.cachingPlayerItemDelegate != nil && info.url.isValidURL {
+                    let cachingItem: CachingPlayerItem = CachingPlayerItem(url: info.url)
+                    cachingItem.delegate = currentItem.cachingPlayerItemDelegate
+                    playerItem = cachingItem
+                } else {
+                    playerItem = AVPlayerItem(url: info.url)
+                }
+                
                 if #available(iOS 10.0, tvOS 10.0, OSX 10.12, *) {
                     playerItem.preferredForwardBufferDuration = self.preferredForwardBufferDuration
                 }
@@ -344,7 +350,7 @@ public class AudioPlayer: NSObject {
     /// Updates the MPNowPlayingInfoCenter with current item's info.
     func updateNowPlayingInfoCenter() {
         #if os(iOS) || os(tvOS)
-            if let item = currentItem {
+        if let item: AudioItem = currentItem {
                 MPNowPlayingInfoCenter.default().ap_update(
                     with: item,
                     duration: currentItemDuration,
@@ -385,10 +391,10 @@ public class AudioPlayer: NSObject {
             return
         }
 
-        let cip = currentItemProgression
-        let ci = currentItem
+        let cip: TimeInterval? = currentItemProgression
+        let ci: AudioItem? = currentItem
         currentItem = ci
-        if let cip = cip {
+        if let cip: TimeInterval = cip {
             //We can't call self.seek(to:) in here since the player is new
             //and `cip` is probably not in the seekableTimeRanges.
             player?.seek(to: CMTime(timeInterval: cip))
