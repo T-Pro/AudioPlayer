@@ -12,40 +12,48 @@ import AVFoundation
 
 class ViewController: UIViewController, AudioPlayerDelegate {
   
-  let player = AudioPlayer()
+    var part: Int = 0
+    var dispatchQueue: DispatchQueue?
+    let player = AudioPlayer()
 
-  override func viewDidLoad() {
+    override func viewDidLoad() {
     super.viewDidLoad()
-    // Do any additional setup after loading the view.
-    
-    player.delegate = self
-    
-//    let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
-    let file: URL = readAudioFile(context: self, name: "long", format: "wav")
-    let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
-    item?.cachingPlayerItemDelegate = self
-    player.play(item: item!)
-    
-    DispatchQueue.main.async {
+        player.delegate = self
         
-    }
-    
-  }
-  
-  func audioPlayer(_ audioPlayer: AudioPlayer, didChangeStateFrom from: AudioPlayerState, to state: AudioPlayerState) {
-    print("from \(from) to \(state)")
-  }
+        let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
+        let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
+        item?.cachingPlayerItemDelegate = self
+        self.player.play(item: item!)
 
-  private func readAudioFile(context: AnyObject, name: String, format: String) -> URL {
-    let bundle: Bundle = Bundle(for: type(of: context))
-    guard let pathString: String = bundle.path(forResource: name, ofType: format) else {
-      fatalError()
+//        let file: URL = readAudioFile(context: self, name: "long", format: "wav")
+//        let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
+//        item?.cachingPlayerItemDelegate = self
+//        player.play(item: item!)
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+//            self.player.stop()
+//            let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
+//            let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
+//            item?.cachingPlayerItemDelegate = self
+//            self.player.play(item: item!)
+//        }
+
     }
-    if FileManager.default.fileExists(atPath: pathString) {
-      return URL(fileURLWithPath: pathString)
+  
+    func audioPlayer(_ audioPlayer: AudioPlayer, didChangeStateFrom from: AudioPlayerState, to state: AudioPlayerState) {
+        print("from \(from) to \(state)")
     }
-    fatalError()
-  }
+
+    private func readAudioFile(context: AnyObject, name: String, format: String) -> URL {
+        let bundle: Bundle = Bundle(for: type(of: context))
+        guard let pathString: String = bundle.path(forResource: name, ofType: format) else {
+            fatalError()
+        }
+        if FileManager.default.fileExists(atPath: pathString) {
+            return URL(fileURLWithPath: pathString)
+        }
+        fatalError()
+    }
 
 }
 
@@ -53,11 +61,16 @@ extension ViewController: CachingPlayerItemDelegate {
     
     func playerItemDidFinishDownloadingData(_ playerItem: AVPlayerItem) {
         print("playerItemDidFinishDownloadingData")
+        //Append as last dispatch
+        dispatchQueue?.sync {
+            self.dispatchQueue = nil
+            part = 0
+        }
     }
     
     func playerItemStartedDownloadingData(_ playerItem: AVPlayerItem) {
         print("playerItemStartedDownloadingData started")
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("cache.wav")
+        let url: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("cache.wav")
         do {
             try FileManager.default.removeItem(at: url)
             print("playerItemStartedDownloadingData data deleted")
@@ -68,22 +81,30 @@ extension ViewController: CachingPlayerItemDelegate {
     
     func playerItem(_ playerItem: AVPlayerItem, didDownloadBytesSoFar bytesDownloaded: UInt64, outOf bytesExpected: Int, from data: Data) {
         
-        print("downloaded part \(data.count)")
+        if dispatchQueue == nil {
+            part = 0
+            dispatchQueue = DispatchQueue(label: "WriterQueue", qos: .userInitiated)
+        }
         
-        autoreleasepool {
-            let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("cache.wav")
-            guard let outputStream: OutputStream = OutputStream(url: url, append: true) else {
-                return
-            }
-            outputStream.open()
-            data.withUnsafeBytes { (rawBufferPointer: UnsafeRawBufferPointer) -> Void in
-                let bufferPointer: UnsafeBufferPointer = rawBufferPointer.bindMemory(to: UInt8.self)
-                guard let baseAddress: UnsafePointer = bufferPointer.baseAddress else {
+        dispatchQueue?.sync {
+            print("Writing \(part)")
+            autoreleasepool {
+                let url: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("cache.wav")
+                guard let outputStream: OutputStream = OutputStream(url: url, append: true) else {
                     return
                 }
-                outputStream.write(baseAddress, maxLength: data.count)
+                outputStream.open()
+                data.withUnsafeBytes { (rawBufferPointer: UnsafeRawBufferPointer) -> Void in
+                    let bufferPointer: UnsafeBufferPointer = rawBufferPointer.bindMemory(to: UInt8.self)
+                    guard let baseAddress: UnsafePointer = bufferPointer.baseAddress else {
+                        return
+                    }
+                    outputStream.write(baseAddress, maxLength: data.count)
+                }
+                outputStream.close()
             }
-            outputStream.close()
+            print("Wrote \(part)")
+            part += 1
         }
     }
     
