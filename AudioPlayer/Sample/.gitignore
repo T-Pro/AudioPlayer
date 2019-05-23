@@ -36,4 +36,4 @@ Carthage/Build
 sonar*
 .sonar
 
-.wav
+*.wav
