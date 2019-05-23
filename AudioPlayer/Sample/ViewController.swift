@@ -20,7 +20,7 @@ class ViewController: UIViewController, AudioPlayerDelegate {
     super.viewDidLoad()
         player.delegate = self
         
-        let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
+        let file: URL = URL(string: "")!
         let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
         item?.cachingPlayerItemDelegate = self
         self.player.play(item: item!)
@@ -32,7 +32,7 @@ class ViewController: UIViewController, AudioPlayerDelegate {
 //
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
 //            self.player.stop()
-//            let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
+//            let file: URL = URL(string: "")!
 //            let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
 //            item?.cachingPlayerItemDelegate = self
 //            self.player.play(item: item!)
