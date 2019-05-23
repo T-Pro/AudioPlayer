@@ -20,10 +20,15 @@ class ViewController: UIViewController, AudioPlayerDelegate {
     
     player.delegate = self
     
-    let file: URL = URL(string: "URL HERE")!
+//    let file: URL = URL(string: "https://s3-eu-west-1.amazonaws.com/t-pro-recordings/transcoded/mp3/7c20a000-726f-11e9-a13b-7505ad891e6a.mp3")!
+    let file: URL = readAudioFile(context: self, name: "long", format: "wav")
     let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
     item?.cachingPlayerItemDelegate = self
     player.play(item: item!)
+    
+    DispatchQueue.main.async {
+        
+    }
     
   }
   

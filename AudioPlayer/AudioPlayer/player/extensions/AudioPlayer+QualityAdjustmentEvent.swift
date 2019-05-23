@@ -47,10 +47,15 @@ extension AudioPlayer {
         let cip: TimeInterval? = currentItemProgression
         
         let item: AVPlayerItem
-        if currentItem?.cachingPlayerItemDelegate != nil && url.isValidURL {
+        
+        if currentItem?.cachingPlayerItemDelegate != nil
+            && !url.isFileURL
+            && url.isValidURL {
+            
             let cachingItem: CachingPlayerItem = CachingPlayerItem(url: url)
             cachingItem.delegate = currentItem?.cachingPlayerItemDelegate
             item = cachingItem
+            
         } else {
             item = AVPlayerItem(url: url)
         }
