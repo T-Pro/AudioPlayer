@@ -107,10 +107,15 @@ public class AudioPlayer: NSObject {
 
                 //Create new AVPlayerItem
                 let playerItem: AVPlayerItem
-                if currentItem.cachingPlayerItemDelegate != nil && info.url.isValidURL {
+                
+                if currentItem.cachingPlayerItemDelegate != nil
+                    && !info.url.isFileURL
+                    && info.url.isValidURL {
+                    
                     let cachingItem: CachingPlayerItem = CachingPlayerItem(url: info.url)
                     cachingItem.delegate = currentItem.cachingPlayerItemDelegate
                     playerItem = cachingItem
+                    
                 } else {
                     playerItem = AVPlayerItem(url: info.url)
                 }
