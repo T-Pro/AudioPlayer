@@ -44,14 +44,22 @@ extension AudioPlayer {
             return
         }
 
-        let cip = currentItemProgression
-        let item = CachingPlayerItem(url: url)
-        item.delegate = currentItem?.cachingPlayerItemDelegate
+        let cip: TimeInterval? = currentItemProgression
+        
+        let item: AVPlayerItem
+        if currentItem?.cachingPlayerItemDelegate != nil && url.isValidURL {
+            let cachingItem: CachingPlayerItem = CachingPlayerItem(url: url)
+            cachingItem.delegate = currentItem?.cachingPlayerItemDelegate
+            item = cachingItem
+        } else {
+            item = AVPlayerItem(url: url)
+        }
+        
         self.updatePlayerItemForBufferingStrategy(item)
 
         qualityIsBeingChanged = true
         player?.replaceCurrentItem(with: item)
-        if let cip = cip {
+        if let cip: TimeInterval = cip {
             //We can't call self.seek(to:) in here since the player is loading a new
             //item and `cip` is probably not in the seekableTimeRanges.
             player?.seek(to: CMTime(timeInterval: cip))

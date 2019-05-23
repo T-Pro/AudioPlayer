@@ -1,37 +1,35 @@
 import Foundation
 import AVFoundation
 
-fileprivate extension URL {
-  func withScheme(_ scheme: String) -> URL? {
-    var components: URLComponents? = URLComponents(url: self, resolvingAgainstBaseURL: false)
-    components?.scheme = scheme
-    return components?.url
-  }
-}
-
 @objc public protocol CachingPlayerItemDelegate {
 
-  /// Is called when the media file is fully downloaded.
-  @objc
-  optional func playerItem(_ playerItem: CachingPlayerItem, didFinishDownloadingData data: Data)
+    /// Is called when the media file is fully downloaded.
+    @objc
+    optional func playerItemDidFinishDownloadingData(_ playerItem: AVPlayerItem)
+    
+    @objc
+    optional func playerItemStartedDownloadingData(_ playerItem: AVPlayerItem)
 
-  /// Is called every time a new portion of data is received.
-  @objc
-  optional func playerItem(_ playerItem: CachingPlayerItem, didDownloadBytesSoFar bytesDownloaded: Int, outOf bytesExpected: Int)
+    /// Is called every time a new portion of data is received.
+    @objc
+    optional func playerItem(_ playerItem: AVPlayerItem, didDownloadBytesSoFar bytesDownloaded: UInt64, outOf bytesExpected: Int, from data: Data)
 
-  /// Is called after initial prebuffering is finished, means
-  /// we are ready to play.
-  @objc
-  optional func playerItemReadyToPlay(_ playerItem: CachingPlayerItem)
+    /// Is called after initial prebuffering is finished, means
+    /// we are ready to play.
+    @objc
+    optional func playerItemReadyToPlay(_ playerItem: AVPlayerItem)
 
-  /// Is called when the data being downloaded did not arrive in time to
-  /// continue playback.
-  @objc
-  optional func playerItemPlaybackStalled(_ playerItem: CachingPlayerItem)
+    /// Is called when the data being downloaded did not arrive in time to
+    /// continue playback.
+    @objc
+    optional func playerItemPlaybackStalled(_ playerItem: AVPlayerItem)
 
-  /// Is called on downloading error.
-  @objc
-  optional func playerItem(_ playerItem: CachingPlayerItem, downloadingFailedWith error: Error)
+    /// Is called on downloading error.
+    @objc
+    optional func playerItem(_ playerItem: AVPlayerItem, downloadingFailedWith error: Error)
+    
+    @objc
+    optional func playerItemCachePath(_ playerItem: AVPlayerItem) -> URL
 
 }
 
@@ -42,7 +40,7 @@ open class CachingPlayerItem: AVPlayerItem {
     var playingFromData = false
     var mimeType: String? // is required when playing from Data
     var session: URLSession?
-    var mediaData: Data?
+    var bytesDownloaded: UInt64 = 0
     var response: URLResponse?
     var pendingRequests = Set<AVAssetResourceLoadingRequest>()
     weak var owner: CachingPlayerItem?
@@ -80,12 +78,16 @@ open class CachingPlayerItem: AVPlayerItem {
     // MARK: URLSession delegate
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-      mediaData?.append(data)
-      processPendingRequests()
-      owner?.delegate?.playerItem?(
-        owner!,
-        didDownloadBytesSoFar: mediaData!.count,
-        outOf: Int(dataTask.countOfBytesExpectedToReceive))
+        processPendingRequests()
+        if bytesDownloaded == 0 {
+            owner?.delegate?.playerItemStartedDownloadingData?(owner!)
+        }
+        bytesDownloaded += UInt64(data.count)
+        owner?.delegate?.playerItem?(
+            owner!,
+            didDownloadBytesSoFar: bytesDownloaded,
+            outOf: Int(dataTask.countOfBytesExpectedToReceive),
+            from: data)
     }
 
     func urlSession(
@@ -94,7 +96,7 @@ open class CachingPlayerItem: AVPlayerItem {
       didReceive response: URLResponse,
       completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
       completionHandler(Foundation.URLSession.ResponseDisposition.allow)
-      mediaData = Data()
+      bytesDownloaded = 0
       self.response = response
       processPendingRequests()
     }
@@ -105,7 +107,7 @@ open class CachingPlayerItem: AVPlayerItem {
         return
       }
       processPendingRequests()
-      owner?.delegate?.playerItem?(owner!, didFinishDownloadingData: mediaData!)
+      owner?.delegate?.playerItemDidFinishDownloadingData?(owner!)
     }
 
     // MARK: -
@@ -138,9 +140,9 @@ open class CachingPlayerItem: AVPlayerItem {
     func fillInContentInformationRequest(_ contentInformationRequest: AVAssetResourceLoadingContentInformationRequest?) {
 
       // if we play from Data we make no url requests, therefore we have no responses, so we need to fill in contentInformationRequest manually
-      if playingFromData, let count: Int = mediaData?.count {
+      if playingFromData {
         contentInformationRequest?.contentType = self.mimeType
-        contentInformationRequest?.contentLength = Int64(count)
+        contentInformationRequest?.contentLength = Int64(bytesDownloaded)
         contentInformationRequest?.isByteRangeAccessSupported = true
         return
       }
@@ -158,21 +160,38 @@ open class CachingPlayerItem: AVPlayerItem {
 
     func haveEnoughDataToFulfillRequest(_ dataRequest: AVAssetResourceLoadingDataRequest) -> Bool {
 
-      let requestedOffset: Int = Int(dataRequest.requestedOffset)
-      let requestedLength: Int = dataRequest.requestedLength
-      let currentOffset: Int = Int(dataRequest.currentOffset)
+        let requestedOffset: UInt64 = UInt64(dataRequest.requestedOffset)
+        let requestedLength: UInt64 = UInt64(dataRequest.requestedLength)
+        let currentOffset: UInt64 = UInt64(dataRequest.currentOffset)
 
-      guard let songDataUnwrapped: Data = mediaData,
-        songDataUnwrapped.count > currentOffset else {
+        guard bytesDownloaded > currentOffset else {
           // Don't have any data at all for this request.
           return false
-      }
+        }
+        
+        let bytesToRespond: UInt64 = min(bytesDownloaded - currentOffset, requestedLength)
+        
+        //Prevent overflow, this is illegal.
+        if bytesToRespond > Int.max {
+            return bytesDownloaded >= requestedLength + requestedOffset
+        }
+        
+//        let bytesToRespond: UInt64 = min(bytesDownloaded - currentOffset, requestedLength)
+//        let dataToRespond: Data = songDataUnwrapped.subdata(in: Range(uncheckedBounds: (currentOffset, currentOffset + bytesToRespond)))
+//        dataRequest.respond(with: dataToRespond)
+        if let url: URL = owner?.delegate?.playerItemCachePath?(owner!) {
+            return autoreleasepool {
+                if let file: FileHandle = FileHandle(forReadingAtPath: url.path) {
+                    file.seek(toFileOffset: currentOffset)
+                    let dataToRespond: Data = file.readData(ofLength: Int(bytesToRespond))
+                    dataRequest.respond(with: dataToRespond)
+                    return bytesDownloaded >= requestedLength + requestedOffset
+                }
+                return false
+            }
+        }
 
-      let bytesToRespond: Int = min(songDataUnwrapped.count - currentOffset, requestedLength)
-      let dataToRespond: Data = songDataUnwrapped.subdata(in: Range(uncheckedBounds: (currentOffset, currentOffset + bytesToRespond)))
-      dataRequest.respond(with: dataToRespond)
-
-      return songDataUnwrapped.count >= requestedLength + requestedOffset
+      return false
 
     }
 
@@ -244,33 +263,35 @@ open class CachingPlayerItem: AVPlayerItem {
 
   }
 
-  init(data: Data, mimeType: String, fileExtension: String) {
-
-    guard let fakeUrl: URL = URL(string: cachingPlayerItemScheme + "://whatever/file.\(fileExtension)") else {
-      fatalError("internal inconsistency")
-    }
-
-    self.url = fakeUrl
-    self.initialScheme = nil
-
-    resourceLoaderDelegate.mediaData = data
-    resourceLoaderDelegate.playingFromData = true
-    resourceLoaderDelegate.mimeType = mimeType
-
-    let asset: AVURLAsset = AVURLAsset(url: fakeUrl)
-    asset.resourceLoader.setDelegate(resourceLoaderDelegate, queue: DispatchQueue.main)
-    super.init(asset: asset, automaticallyLoadedAssetKeys: nil)
-    resourceLoaderDelegate.owner = self
-
-    addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions.new, context: nil)
-
-    NotificationCenter.default.addObserver(
-      self,
-      selector: #selector(playbackStalledHandler),
-      name: NSNotification.Name.AVPlayerItemPlaybackStalled,
-      object: self)
-
-  }
+//  init(data: Data, mimeType: String, fileExtension: String) {
+//
+//    fatalError("Should not be called from local file")
+//
+//    guard let fakeUrl: URL = URL(string: cachingPlayerItemScheme + "://whatever/file.\(fileExtension)") else {
+//      fatalError("internal inconsistency")
+//    }
+//
+//    self.url = fakeUrl
+//    self.initialScheme = nil
+//
+////    resourceLoaderDelegate.mediaData = data
+//    resourceLoaderDelegate.playingFromData = true
+//    resourceLoaderDelegate.mimeType = mimeType
+//
+//    let asset: AVURLAsset = AVURLAsset(url: fakeUrl)
+//    asset.resourceLoader.setDelegate(resourceLoaderDelegate, queue: DispatchQueue.main)
+//    super.init(asset: asset, automaticallyLoadedAssetKeys: nil)
+//    resourceLoaderDelegate.owner = self
+//
+//    addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions.new, context: nil)
+//
+//    NotificationCenter.default.addObserver(
+//      self,
+//      selector: #selector(playbackStalledHandler),
+//      name: NSNotification.Name.AVPlayerItemPlaybackStalled,
+//      object: self)
+//
+//  }
 
   // MARK: KVO
 
