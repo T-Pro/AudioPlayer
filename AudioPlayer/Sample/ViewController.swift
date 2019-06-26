@@ -30,7 +30,7 @@ class ViewController: UIViewController, AudioPlayerDelegate {
         item?.cachingPlayerItemDelegate = self
         player.play(item: item!)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             self.player.stop()
             let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
             item?.cachingPlayerItemDelegate = self
