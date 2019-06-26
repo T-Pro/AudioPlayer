@@ -20,28 +20,27 @@ class ViewController: UIViewController, AudioPlayerDelegate {
     super.viewDidLoad()
         player.delegate = self
         
-        let file: URL = URL(string: "")!
-        let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
-        item?.cachingPlayerItemDelegate = self
-        self.player.play(item: item!)
-
-//        let file: URL = readAudioFile(context: self, name: "long", format: "wav")
+//        let file: URL = URL(string: "")!
 //        let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
 //        item?.cachingPlayerItemDelegate = self
-//        player.play(item: item!)
-//
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-//            self.player.stop()
-//            let file: URL = URL(string: "")!
-//            let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
-//            item?.cachingPlayerItemDelegate = self
-//            self.player.play(item: item!)
-//        }
+//        self.player.play(item: item!)
+
+        let file: URL = readAudioFile(context: self, name: "long", format: "wav")
+        let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
+        item?.cachingPlayerItemDelegate = self
+        player.play(item: item!)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            self.player.stop()
+            let item: AudioItem? = AudioItem(mediumQualitySoundURL: file)
+            item?.cachingPlayerItemDelegate = self
+            self.player.play(item: item!)
+        }
 
     }
   
     func audioPlayer(_ audioPlayer: AudioPlayer, didChangeStateFrom from: AudioPlayerState, to state: AudioPlayerState) {
-        print("from \(from) to \(state)")
+        print("from \(from) to \(state) = \(audioPlayer.currentItemDuration)")
     }
 
     private func readAudioFile(context: AnyObject, name: String, format: String) -> URL {
