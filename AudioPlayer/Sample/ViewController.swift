@@ -39,8 +39,12 @@ class ViewController: UIViewController, AudioPlayerDelegate {
 
     }
   
+    func audioPlayer(_ audioPlayer: AudioPlayer, didFindDuration duration: TimeInterval, for item: AudioItem) {
+        print("[SAMPLE] find duration \(audioPlayer.currentItemDuration)")
+    }
+  
     func audioPlayer(_ audioPlayer: AudioPlayer, didChangeStateFrom from: AudioPlayerState, to state: AudioPlayerState) {
-        print("from \(from) to \(state) = \(audioPlayer.currentItemDuration)")
+        print("[SAMPLE] from \(from) to \(state)")
     }
 
     private func readAudioFile(context: AnyObject, name: String, format: String) -> URL {
