@@ -29,7 +29,7 @@ import AVFoundation
     optional func playerItem(_ playerItem: AVPlayerItem, downloadingFailedWith error: Error)
     
     @objc
-    optional func playerItemCachePath(_ playerItem: AVPlayerItem) -> URL
+    optional func playerItemCachePath(_ playerItem: AVPlayerItem) -> URL?
 
 }
 
