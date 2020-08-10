@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source        =  { :git => 'https://github.com/delannoyk/AudioPlayer.git', :tag => s.version.to_s }
   s.source_files  = 'AudioPlayer/AudioPlayer/**/*.swift'
   s.requires_arc  = true
-  s.xcconfig = { 'ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES' => 'YES' }
+  # s.xcconfig = { 'ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES' => 'YES' }
 
   s.ios.deployment_target = '8.0'
   s.ios.framework = 'UIKit', 'AVFoundation', 'MediaPlayer', 'SystemConfiguration'
