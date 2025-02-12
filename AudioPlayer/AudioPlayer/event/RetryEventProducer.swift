@@ -43,7 +43,6 @@ class RetryEventProducer: NSObject, EventProducer {
     /// The delay to wait before cancelling last retry and retrying. Default value is 10 seconds.
     var retryTimeout = TimeInterval(10)
 
-
     /// Stops producing events on deinitialization.
     deinit {
         stopProducingEvents()
